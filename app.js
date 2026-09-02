@@ -20,14 +20,6 @@ const translations = {
     pinHint: "Demo PIN: 2026",
     unlockAdmin: "Open admin portal",
     incorrectPin: "Incorrect PIN. Try 2026 for this demo.",
-    controlRail: "Control rail",
-    rosterOnline: "Roster online",
-    selectAll: "Select all",
-    liveSignal: "Live signal",
-    graceCore: "Grace Core",
-    identityLink: "Identity link",
-    systemReady: "System ready",
-    pointSignal: "Point signal",
     schoolYear: "School year",
     rewardTitle: "Reward students",
     rewardDesc: "Choose a class or subject group, then select one or more students.",
@@ -172,14 +164,6 @@ const translations = {
     pinHint: "示範密碼：2026",
     unlockAdmin: "開啟管理員頁面",
     incorrectPin: "密碼不正確。此示範可使用 2026。",
-    controlRail: "控制台",
-    rosterOnline: "名單已連線",
-    selectAll: "全部選取",
-    liveSignal: "即時訊號",
-    graceCore: "恩之核心",
-    identityLink: "身份連線",
-    systemReady: "系統就緒",
-    pointSignal: "積分訊號",
     schoolYear: "學年",
     rewardTitle: "獎勵學生",
     rewardDesc: "選擇班別或分組，然後揀選一位或多位學生。",
@@ -356,7 +340,7 @@ const state = {
   role: PAGE_TYPE,
   teacherTab: "reward",
   rosterMode: "home",
-  grade: 5,
+  grade: "all",
   homeClass: "all",
   subject: "English",
   group: "all",
@@ -501,12 +485,9 @@ function renderRewardWorkspace() {
     : `${gradeText} · ${subjectLabel(state.subject)} · ${state.group === "all" ? t("allGroups") : groupLabel(state.group)}`;
 
   return `
-    <div class="cyber-workspace">
-      <aside class="filter-console">
-        <div class="console-heading">
-          <span class="signal-dot" aria-hidden="true"></span>
-          <div><span>${t("controlRail")}</span><strong>GP–01</strong></div>
-        </div>
+    <div class="compact-workspace">
+      <section class="compact-roster-panel">
+        <div class="filter-toolbar">
           <div class="mode-switch compact-mode-switch" aria-label="${t("chooseList")}">
             <button type="button" data-roster-mode="home" class="${state.rosterMode === "home" ? "active" : ""}">${t("classMode")}</button>
             <button type="button" data-roster-mode="subject" class="${state.rosterMode === "subject" ? "active" : ""}">${t("subjectMode")}</button>
@@ -545,25 +526,24 @@ function renderRewardWorkspace() {
             <span class="sr-only">${t("search")}</span>
             <input id="student-search" type="search" value="${escapeHtml(state.search)}" placeholder="${t("search")}" autocomplete="off" />
           </label>
-          <div class="console-status">
-            <span><i></i>${t("rosterOnline")}</span>
-            <strong>400 / 400</strong>
-          </div>
-      </aside>
-
-      <section class="matrix-zone">
-        <div class="matrix-toolbar">
+        </div>
+        <div class="roster-toolbar compact-roster-toolbar">
           <div class="roster-title">
-            <p class="matrix-kicker">${t("liveSignal")} / ${state.rosterMode === "home" ? "CLS" : "SUB"}</p>
             <h2>${scopeTitle}</h2>
             <p id="roster-count">${roster.length} ${t("students")}</p>
           </div>
-          <button class="matrix-select-all ${allSelected ? "active" : ""}" type="button" data-select-all>
-            <span class="check-control ${allSelected ? "checked" : ""}">✓</span>
-            <span>${t("selectAll")}</span>
-          </button>
         </div>
-        <div id="roster-list" class="student-matrix">
+        <div class="roster-header">
+          <button class="select-all-button" type="button" aria-label="Select all" data-select-all>
+            <span class="check-control ${allSelected ? "checked" : ""}">✓</span>
+          </button>
+          <span>${t("no")}</span>
+          <span>${t("name")}</span>
+          <span>${t("classLabel")}</span>
+          <span>${t("balance")}</span>
+          <span></span>
+        </div>
+        <div id="roster-list">
           ${renderRosterRows(roster)}
         </div>
       </section>
@@ -603,18 +583,16 @@ function renderRosterRows(roster) {
     return `<div class="empty-state"><strong>${t("noStudents")}</strong><span>${t("noStudentsDesc")}</span></div>`;
   }
   return roster.map((student) => `
-    <article class="student-row student-node ${state.selected.has(student.id) ? "selected" : ""}" data-student-row="${student.id}" data-search="${escapeHtml(`${student.nameEn} ${student.nameZh} ${student.number} P.${student.grade}${student.homeClass} ${student.grade}${student.homeClass}`.toLowerCase())}">
-      <button class="row-selector node-selector" type="button" data-select-student="${student.id}" aria-label="Select ${escapeHtml(studentName(student))}">
-        <span class="node-status"><i></i>${String(student.number).padStart(2, "0")}</span>
+    <div class="student-row ${state.selected.has(student.id) ? "selected" : ""}" data-student-row="${student.id}" data-search="${escapeHtml(`${student.nameEn} ${student.nameZh} ${student.number} P.${student.grade}${student.homeClass} ${student.grade}${student.homeClass}`.toLowerCase())}">
+      <button class="row-selector" type="button" data-select-student="${student.id}" aria-label="Select ${escapeHtml(studentName(student))}">
         <span class="check-control ${state.selected.has(student.id) ? "checked" : ""}">✓</span>
-        <span class="student-name"><strong>${student.nameZh}</strong><small>${student.nameEn}</small></span>
-        <span class="node-meta">
-          <span class="class-tag">P.${student.grade}${student.homeClass}</span>
-          <span class="point-balance">${formatNumber(student.balance)} <small>GP</small></span>
-        </span>
       </button>
-      <button class="student-detail-button node-detail" type="button" data-view-student="${student.id}" aria-label="${t("viewStudent")}">↗</button>
-    </article>
+      <span class="student-number">${String(student.number).padStart(2, "0")}</span>
+      <span class="student-name"><strong>${student.nameZh}</strong><small>${student.nameEn}</small></span>
+      <span class="class-tag">P.${student.grade}${student.homeClass}</span>
+      <span class="point-balance">${formatNumber(student.balance)}</span>
+      <button class="student-detail-button" type="button" data-view-student="${student.id}" aria-label="${t("viewStudent")}">→</button>
+    </div>
   `).join("");
 }
 
@@ -918,8 +896,7 @@ function renderStudent() {
         <button class="secondary-button" type="button" id="student-sign-out">${t("signOut")}</button>
       </div>
       <div class="student-balance-stage">
-        <div class="core-tag"><i></i>${t("graceCore")} / ${t("systemReady")}</div>
-        <div><span>${t("pointSignal")}</span><strong>${formatNumber(student.balance)}</strong></div>
+        <div><span>${t("gracePoints")}</span><strong>${formatNumber(student.balance)}</strong></div>
         <div class="balance-fruit" aria-hidden="true"></div>
       </div>
       <div class="history-layout">
@@ -961,16 +938,15 @@ function renderStudentLogin() {
     <section class="student-login-view">
       <div class="login-atmosphere">
         <div class="orchard-pattern" aria-hidden="true"></div>
-        <div class="core-orb" aria-hidden="true"><span>GP</span><i></i><b></b></div>
         <div class="login-atmosphere-copy">
-          <p class="eyebrow"><span class="signal-dot"></span>${t("graceCore")} / ${t("systemReady")}</p>
+          <p class="eyebrow">Grace Points · 恩之果積分</p>
           <h2>${t("everyPoint")}</h2>
           <p>${t("everyPointDesc")}</p>
         </div>
       </div>
       <div class="login-panel-wrap">
         <div class="login-panel">
-          <p class="eyebrow">${t("identityLink")} / ${t("studentEntry")}</p>
+          <p class="eyebrow">${t("studentEntry")}</p>
           <h1>${t("loginTitle")}</h1>
           <p>${t("loginDesc")}</p>
           <div class="field-group">
