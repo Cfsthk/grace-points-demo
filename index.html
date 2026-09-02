@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#164f42" />
+    <meta
+      name="description"
+      content="Grace Points — a bilingual school reward system demo for Hong Kong primary schools."
+    />
+    <title>Grace Points · 恩之果積分</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" type="button" data-role-target="teacher" aria-label="Grace Points home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" role="img">
+              <path d="M21 8c2.4-4.1 5.7-5.7 9.8-4.8C28.9 7 25.6 8.7 21 8Z" />
+              <path d="M20.1 10.4C11.7 6 4.6 12 6.2 21c1.5 8.1 7.6 15 13.8 15s12.3-6.9 13.8-15c1.6-9-5.5-15-13.7-10.6Z" />
+              <circle cx="15" cy="18" r="2.2" />
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>Grace Points</strong>
+            <small>恩之果積分</small>
+          </span>
+        </button>
+
+        <nav class="role-switcher" aria-label="Demo role">
+          <button class="role-button active" type="button" data-role-target="teacher">
+            <span data-i18n="teacher">Teacher</span>
+          </button>
+          <button class="role-button" type="button" data-role-target="student">
+            <span data-i18n="student">Student</span>
+          </button>
+          <button class="role-button" type="button" data-role-target="admin">
+            <span data-i18n="admin">Admin</span>
+          </button>
+        </nav>
+
+        <div class="topbar-actions">
+          <span class="demo-badge" data-i18n="demo">Interactive demo</span>
+          <button class="language-button" id="language-toggle" type="button" aria-label="Switch language">
+            中文
+          </button>
+          <div class="account-identity" id="account-identity" aria-live="polite">
+            <span class="avatar">陳</span>
+            <span class="account-name">Ms Chan</span>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1"></main>
+
+      <nav class="mobile-role-nav" aria-label="Demo role">
+        <button class="mobile-role active" type="button" data-role-target="teacher">
+          <span class="mobile-icon" aria-hidden="true">＋</span>
+          <span data-i18n="teacher">Teacher</span>
+        </button>
+        <button class="mobile-role" type="button" data-role-target="student">
+          <span class="mobile-icon" aria-hidden="true">◎</span>
+          <span data-i18n="student">Student</span>
+        </button>
+        <button class="mobile-role" type="button" data-role-target="admin">
+          <span class="mobile-icon" aria-hidden="true">⌁</span>
+          <span data-i18n="admin">Admin</span>
+        </button>
+      </nav>
+    </div>
+
+    <div id="modal-root"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <noscript>This demo needs JavaScript enabled.</noscript>
+    <script src="app.js" defer></script>
+  </body>
+</html>
