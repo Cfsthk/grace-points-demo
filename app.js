@@ -336,7 +336,7 @@ const activities = [
 const PAGE_TYPE = document.body.dataset.page === "teacher" ? "teacher" : "student";
 
 const state = {
-  lang: "en",
+  lang: "zh",
   role: PAGE_TYPE,
   teacherTab: "reward",
   rosterMode: "home",
@@ -940,14 +940,12 @@ function renderStudentLogin() {
         <div class="orchard-pattern" aria-hidden="true"></div>
         <div class="login-atmosphere-copy">
           <p class="eyebrow">Grace Points · 恩之果積分</p>
-          <h2>${t("everyPoint")}</h2>
           <p>${t("everyPointDesc")}</p>
         </div>
       </div>
       <div class="login-panel-wrap">
         <div class="login-panel">
           <p class="eyebrow">${t("studentEntry")}</p>
-          <h1>${t("loginTitle")}</h1>
           <p>${t("loginDesc")}</p>
           <div class="field-group">
             <label>${t("chooseGrade")}</label>
