@@ -4,6 +4,22 @@ const translations = {
     student: "Student",
     admin: "Admin",
     demo: "Interactive demo",
+    teacherPortal: "Teacher portal",
+    studentPage: "Student page",
+    adminPortal: "Admin portal",
+    teacherWorkspace: "Teacher workspace",
+    classMode: "Class",
+    subjectMode: "Subject",
+    allStudents: "All students",
+    allGrades: "All grades",
+    allClasses: "All classes",
+    allGroups: "All groups",
+    adminPinTitle: "Enter administrator PIN",
+    adminPinDesc: "Enter the 4-digit PIN to open school-wide reports and controls.",
+    pinLabel: "4-digit PIN",
+    pinHint: "Demo PIN: 2026",
+    unlockAdmin: "Open admin portal",
+    incorrectPin: "Incorrect PIN. Try 2026 for this demo.",
     schoolYear: "School year",
     rewardTitle: "Reward students",
     rewardDesc: "Choose a class or subject group, then select one or more students.",
@@ -20,7 +36,7 @@ const translations = {
     recentLists: "Recently used",
     classRoster: "Student roster",
     students: "students",
-    search: "Search name or number",
+    search: "Search name, number or class",
     no: "No.",
     name: "Student",
     balance: "Balance",
@@ -132,6 +148,22 @@ const translations = {
     student: "學生",
     admin: "管理員",
     demo: "互動示範",
+    teacherPortal: "教師頁面",
+    studentPage: "學生頁面",
+    adminPortal: "管理員頁面",
+    teacherWorkspace: "返回教師頁面",
+    classMode: "班別",
+    subjectMode: "科目",
+    allStudents: "所有學生",
+    allGrades: "所有年級",
+    allClasses: "所有班別",
+    allGroups: "所有組別",
+    adminPinTitle: "輸入管理員密碼",
+    adminPinDesc: "輸入四位數字密碼，以開啟全校報告及管理功能。",
+    pinLabel: "四位數字密碼",
+    pinHint: "示範密碼：2026",
+    unlockAdmin: "開啟管理員頁面",
+    incorrectPin: "密碼不正確。此示範可使用 2026。",
     schoolYear: "學年",
     rewardTitle: "獎勵學生",
     rewardDesc: "選擇班別或分組，然後揀選一位或多位學生。",
@@ -148,7 +180,7 @@ const translations = {
     recentLists: "最近使用",
     classRoster: "學生名單",
     students: "位學生",
-    search: "搜尋姓名或學號",
+    search: "搜尋姓名、學號或班別",
     no: "號數",
     name: "學生",
     balance: "結餘",
@@ -301,17 +333,19 @@ const activities = [
   { id: "a4", batch: "B-1036", studentId: "s1", type: "award", amount: 5, reason: "Prepared for class", date: "26 Aug, 11:25", status: "reversed" },
 ];
 
+const PAGE_TYPE = document.body.dataset.page === "teacher" ? "teacher" : "student";
+
 const state = {
   lang: "en",
-  role: "teacher",
+  role: PAGE_TYPE,
   teacherTab: "reward",
-  rosterMode: "subject",
-  grade: 5,
-  homeClass: "信",
+  rosterMode: "home",
+  grade: "all",
+  homeClass: "all",
   subject: "English",
-  group: "Blue",
+  group: "all",
   search: "",
-  selected: new Set(["s3", "s4"]),
+  selected: new Set(),
   points: 5,
   reason: "",
   studentLoggedIn: false,
@@ -374,10 +408,12 @@ function currentTeacher() {
 function filteredStudents() {
   const search = state.search.trim().toLowerCase();
   return students.filter((student) => {
+    const gradeMatch = state.grade === "all" || student.grade === Number(state.grade);
     const scopeMatch = state.rosterMode === "home"
-      ? student.grade === state.grade && student.homeClass === state.homeClass
-      : student.grade === state.grade && student.groups[state.subject] === state.group;
-    const searchMatch = !search || `${student.nameEn} ${student.nameZh} ${student.number}`.toLowerCase().includes(search);
+      ? gradeMatch && (state.homeClass === "all" || student.homeClass === state.homeClass)
+      : gradeMatch && (state.group === "all" || student.groups[state.subject] === state.group);
+    const searchText = `${student.nameEn} ${student.nameZh} ${student.number} P.${student.grade}${student.homeClass} ${student.grade}${student.homeClass}`.toLowerCase();
+    const searchMatch = !search || searchText.includes(search);
     return scopeMatch && searchMatch;
   });
 }
@@ -391,26 +427,26 @@ function renderStaticLabels() {
 }
 
 function renderRoleState() {
-  document.querySelectorAll("[data-role-target]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.roleTarget === state.role);
-  });
-
   const identity = document.querySelector("#account-identity");
-  if (state.role === "teacher") {
+  if (identity && state.role === "teacher") {
     identity.innerHTML = `<span class="avatar">陳</span><span class="account-name">${teacherName(currentTeacher())}</span>`;
-  } else if (state.role === "admin") {
+  } else if (identity && state.role === "admin") {
     identity.innerHTML = `<span class="avatar">管</span><span class="account-name">${t("schoolAdmin")}</span>`;
-  } else {
-    identity.innerHTML = `<span class="avatar">學</span><span class="account-name">${t("student")}</span>`;
   }
+
+  const adminEntry = document.querySelector("#admin-entry-button");
+  const backToTeacher = document.querySelector("#back-to-teacher-button");
+  if (adminEntry) adminEntry.hidden = state.role === "admin";
+  if (backToTeacher) backToTeacher.hidden = state.role !== "admin";
+  document.body.dataset.view = state.role;
 }
 
 function renderApp() {
   renderStaticLabels();
   renderRoleState();
-  if (state.role === "teacher") renderTeacher();
-  if (state.role === "student") renderStudent();
-  if (state.role === "admin") renderAdmin();
+  if (PAGE_TYPE === "student") renderStudent();
+  if (PAGE_TYPE === "teacher" && state.role === "teacher") renderTeacher();
+  if (PAGE_TYPE === "teacher" && state.role === "admin") renderAdmin();
   main.classList.remove("view-enter");
   requestAnimationFrame(() => main.classList.add("view-enter"));
 }
@@ -418,21 +454,16 @@ function renderApp() {
 function renderTeacher() {
   const teacher = currentTeacher();
   main.innerHTML = `
-    <section>
-      <div class="page-heading">
-        <div>
-          <p class="eyebrow">${t("schoolYear")} ${state.currentYear}</p>
-          <h1>${t("rewardTitle")}</h1>
-          <p>${t("rewardDesc")}</p>
+    <section class="teacher-page">
+      <div class="compact-teacher-bar">
+        <div class="teacher-tabs">
+          <button class="text-tab ${state.teacherTab === "reward" ? "active" : ""}" type="button" data-teacher-tab="reward">${t("reward")}</button>
+          <button class="text-tab ${state.teacherTab === "activity" ? "active" : ""}" type="button" data-teacher-tab="activity">${t("activity")}</button>
         </div>
-        <div class="teacher-balance" aria-label="${t("available")}">
+        <div class="teacher-balance compact-balance" aria-label="${t("available")}">
           <strong>${formatNumber(teacher.balance)}</strong>
           <span>${t("available")}</span>
         </div>
-      </div>
-      <div class="teacher-tabs">
-        <button class="text-tab ${state.teacherTab === "reward" ? "active" : ""}" type="button" data-teacher-tab="reward">${t("reward")}</button>
-        <button class="text-tab ${state.teacherTab === "activity" ? "active" : ""}" type="button" data-teacher-tab="activity">${t("activity")}</button>
       </div>
       ${state.teacherTab === "reward" ? renderRewardWorkspace() : renderActivity()}
     </section>
@@ -446,65 +477,61 @@ function renderRewardWorkspace() {
   const totalCost = visibleSelected.length * state.points;
   const resultingBalance = currentTeacher().balance - totalCost;
   const allSelected = roster.length > 0 && roster.every((student) => state.selected.has(student.id));
+  const gradeText = state.grade === "all" ? t("allGrades") : `P.${state.grade}`;
   const scopeTitle = state.rosterMode === "home"
-    ? `P.${state.grade}${state.homeClass}`
-    : `P.${state.grade} · ${subjectLabel(state.subject)} · ${groupLabel(state.group)}`;
+    ? (state.grade === "all" && state.homeClass === "all"
+        ? t("allStudents")
+        : `${gradeText} · ${state.homeClass === "all" ? t("allClasses") : state.homeClass}`)
+    : `${gradeText} · ${subjectLabel(state.subject)} · ${state.group === "all" ? t("allGroups") : groupLabel(state.group)}`;
 
   return `
-    <div class="teacher-workspace">
-      <aside class="scope-panel">
-        <div class="sticky-panel">
-          <span class="section-label">${t("chooseList")}</span>
-          <div class="mode-switch">
-            <button type="button" data-roster-mode="home" class="${state.rosterMode === "home" ? "active" : ""}">${t("homeClass")}</button>
-            <button type="button" data-roster-mode="subject" class="${state.rosterMode === "subject" ? "active" : ""}">${t("subjectGroup")}</button>
+    <div class="compact-workspace">
+      <section class="compact-roster-panel">
+        <div class="filter-toolbar">
+          <div class="mode-switch compact-mode-switch" aria-label="${t("chooseList")}">
+            <button type="button" data-roster-mode="home" class="${state.rosterMode === "home" ? "active" : ""}">${t("classMode")}</button>
+            <button type="button" data-roster-mode="subject" class="${state.rosterMode === "subject" ? "active" : ""}">${t("subjectMode")}</button>
           </div>
-          <div class="field-group">
-            <label for="grade-filter">${t("grade")}</label>
+          <label class="compact-field">
+            <span>${t("grade")}</span>
             <select id="grade-filter">
-              ${[1, 2, 3, 4, 5, 6].map((grade) => `<option value="${grade}" ${state.grade === grade ? "selected" : ""}>P.${grade}</option>`).join("")}
+              <option value="all" ${state.grade === "all" ? "selected" : ""}>${t("all")}</option>
+              ${[1, 2, 3, 4, 5, 6].map((grade) => `<option value="${grade}" ${Number(state.grade) === grade ? "selected" : ""}>P.${grade}</option>`).join("")}
             </select>
-          </div>
+          </label>
           ${state.rosterMode === "home" ? `
-            <div class="field-group">
-              <label for="class-filter">${t("classLabel")}</label>
+            <label class="compact-field">
+              <span>${t("classLabel")}</span>
               <select id="class-filter">
-                ${["信", "望", "愛", "智"].map((className) => `<option ${state.homeClass === className ? "selected" : ""}>${className}</option>`).join("")}
+                <option value="all" ${state.homeClass === "all" ? "selected" : ""}>${t("all")}</option>
+                ${["信", "望", "愛", "智"].map((className) => `<option value="${className}" ${state.homeClass === className ? "selected" : ""}>${className}</option>`).join("")}
               </select>
-            </div>
+            </label>
           ` : `
-            <div class="field-group">
-              <label for="subject-filter">${t("subject")}</label>
+            <label class="compact-field">
+              <span>${t("subject")}</span>
               <select id="subject-filter">
                 ${["Chinese", "English", "Mathematics"].map((subject) => `<option value="${subject}" ${state.subject === subject ? "selected" : ""}>${subjectLabel(subject)}</option>`).join("")}
               </select>
-            </div>
-            <div class="field-group">
-              <label for="group-filter">${t("group")}</label>
+            </label>
+            <label class="compact-field">
+              <span>${t("group")}</span>
               <select id="group-filter">
+                <option value="all" ${state.group === "all" ? "selected" : ""}>${t("all")}</option>
                 ${["Red", "Yellow", "Blue", "Green"].map((group) => `<option value="${group}" ${state.group === group ? "selected" : ""}>${groupLabel(group)}</option>`).join("")}
               </select>
-            </div>
+            </label>
           `}
-          <div class="recent-lists">
-            <span class="section-label">${t("recentLists")}</span>
-            <button class="recent-button" type="button" data-recent="p5-blue"><span>P.5 · ${t("english")} · ${t("blue")}</span><span>8</span></button>
-            <button class="recent-button" type="button" data-recent="p4-red"><span>P.4 · ${t("chinese")} · ${t("red")}</span><span>4</span></button>
-            <button class="recent-button" type="button" data-recent="p6-green"><span>P.6 · ${t("mathematics")} · ${t("green")}</span><span>4</span></button>
-          </div>
+          <label class="search-box compact-search">
+            <span class="sr-only">${t("search")}</span>
+            <input id="student-search" type="search" value="${escapeHtml(state.search)}" placeholder="${t("search")}" autocomplete="off" />
+          </label>
         </div>
-      </aside>
-
-      <section class="roster-panel">
-        <div class="roster-toolbar">
+        <div class="roster-toolbar compact-roster-toolbar">
           <div class="roster-title">
             <h2>${scopeTitle}</h2>
             <p id="roster-count">${roster.length} ${t("students")}</p>
           </div>
-          <label class="search-box">
-            <span class="sr-only"></span>
-            <input id="student-search" type="search" value="${escapeHtml(state.search)}" placeholder="${t("search")}" autocomplete="off" />
-          </label>
         </div>
         <div class="roster-header">
           <button class="select-all-button" type="button" aria-label="Select all" data-select-all>
@@ -521,40 +548,32 @@ function renderRewardWorkspace() {
         </div>
       </section>
 
-      <aside class="reward-panel">
-        <div class="sticky-panel">
-          <h2>${t("givePoints")}</h2>
-          <p>${t("chooseAmount")}</p>
-          <div class="selection-count">
-            <strong>${visibleSelected.length}</strong>
-            <span>${t("selected")}</span>
-          </div>
-          <div class="field-group">
-            <label>${t("chooseAmount")}</label>
-            <div class="quick-points">
-              ${[1, 2, 5, 10].map((points) => `<button class="point-button ${state.points === points ? "active" : ""}" type="button" data-points="${points}">+${points}</button>`).join("")}
-            </div>
-            <label class="custom-points">
-              <input id="custom-points" type="number" min="1" step="1" placeholder="${t("custom")}" value="${[1, 2, 5, 10].includes(state.points) ? "" : state.points}" />
-              <span>${t("pointsShort")}</span>
-            </label>
-          </div>
-          <div class="field-group">
-            <label for="reward-reason">${t("optionalReason")}</label>
-            <textarea id="reward-reason" placeholder="${t("reasonPlaceholder")}">${escapeHtml(state.reason)}</textarea>
-          </div>
-          <div class="award-summary">
+      <footer class="reward-compose">
+        <div class="compose-selection">
+          <strong>${visibleSelected.length}</strong>
+          <span>${t("selected")}</span>
+          <div class="award-summary compact-summary">
             <div class="summary-row"><span>${t("totalCost")}</span><strong>${formatNumber(totalCost)}</strong></div>
-            <div class="summary-row ${resultingBalance < 0 ? "negative" : ""}"><span>${t("afterAward")}</span><strong>${formatNumber(resultingBalance)}</strong></div>
+            <div class="summary-row ${resultingBalance < 0 ? "negative" : ""}"><span>${t("remaining")}</span><strong>${formatNumber(resultingBalance)}</strong></div>
           </div>
-          ${resultingBalance < 0 && visibleSelected.length ? `<div class="balance-warning">${t("lowWarning")}</div>` : ""}
-          <label class="mobile-points-control">
-            <input id="mobile-points" type="number" min="1" step="1" value="${state.points}" aria-label="${t("chooseAmount")}" />
+        </div>
+        <div class="compose-points">
+          <span class="compose-label">${t("chooseAmount")}</span>
+          <div class="quick-points">
+            ${[1, 2, 5, 10].map((points) => `<button class="point-button ${state.points === points ? "active" : ""}" type="button" data-points="${points}">+${points}</button>`).join("")}
+          </div>
+          <label class="custom-points compact-custom">
+            <input id="custom-points" type="number" min="1" step="1" aria-label="${t("custom")}" placeholder="…" value="${[1, 2, 5, 10].includes(state.points) ? "" : state.points}" />
             <span>${t("pointsShort")}</span>
           </label>
-          <button class="primary-button full-button" type="button" id="award-button" ${visibleSelected.length === 0 || state.points < 1 ? "disabled" : ""}>${t("givePoints")}${visibleSelected.length ? ` · ${visibleSelected.length} × ${state.points}` : ""} <span aria-hidden="true">→</span></button>
         </div>
-      </aside>
+        <label class="compose-reason" for="reward-reason">
+          <span class="compose-label">${t("optionalReason")}</span>
+          <input id="reward-reason" type="text" placeholder="${t("reasonPlaceholder")}" value="${escapeHtml(state.reason)}" />
+        </label>
+        ${resultingBalance < 0 && visibleSelected.length ? `<div class="balance-warning compose-warning">${t("lowWarning")}</div>` : ""}
+        <button class="primary-button compact-send" type="button" id="award-button" ${visibleSelected.length === 0 || state.points < 1 ? "disabled" : ""}>${t("givePoints")} <span aria-hidden="true">→</span></button>
+      </footer>
     </div>
   `;
 }
@@ -564,7 +583,7 @@ function renderRosterRows(roster) {
     return `<div class="empty-state"><strong>${t("noStudents")}</strong><span>${t("noStudentsDesc")}</span></div>`;
   }
   return roster.map((student) => `
-    <div class="student-row ${state.selected.has(student.id) ? "selected" : ""}" data-student-row="${student.id}" data-search="${escapeHtml(`${student.nameEn} ${student.nameZh} ${student.number}`.toLowerCase())}">
+    <div class="student-row ${state.selected.has(student.id) ? "selected" : ""}" data-student-row="${student.id}" data-search="${escapeHtml(`${student.nameEn} ${student.nameZh} ${student.number} P.${student.grade}${student.homeClass} ${student.grade}${student.homeClass}`.toLowerCase())}">
       <button class="row-selector" type="button" data-select-student="${student.id}" aria-label="Select ${escapeHtml(studentName(student))}">
         <span class="check-control ${state.selected.has(student.id) ? "checked" : ""}">✓</span>
       </button>
@@ -624,7 +643,7 @@ function bindTeacherEvents() {
 
   const gradeFilter = main.querySelector("#grade-filter");
   if (gradeFilter) gradeFilter.addEventListener("change", (event) => {
-    state.grade = Number(event.target.value);
+    state.grade = event.target.value === "all" ? "all" : Number(event.target.value);
     state.selected.clear();
     renderTeacher();
   });
@@ -712,11 +731,11 @@ function bindTeacherEvents() {
       summaryRows[1].classList.toggle("negative", resultingBalance < 0);
     }
 
-    const rewardPanel = main.querySelector(".reward-panel .sticky-panel");
+    const rewardPanel = main.querySelector(".reward-compose");
     const existingWarning = rewardPanel?.querySelector(".balance-warning");
     if (resultingBalance < 0 && count > 0 && !existingWarning) {
       const warning = document.createElement("div");
-      warning.className = "balance-warning";
+      warning.className = "balance-warning compose-warning";
       warning.textContent = t("lowWarning");
       rewardPanel.querySelector("#award-button").before(warning);
     } else if ((resultingBalance >= 0 || count === 0) && existingWarning) {
@@ -1159,6 +1178,49 @@ function closeModal() {
   document.removeEventListener("keydown", handleModalEscape);
 }
 
+function openAdminPin() {
+  openModal(`
+    <span class="modal-kicker">${t("adminPortal")}</span>
+    <h2>${t("adminPinTitle")}</h2>
+    <p>${t("adminPinDesc")}</p>
+    <div class="field-group pin-field">
+      <label for="admin-pin">${t("pinLabel")}</label>
+      <input id="admin-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" />
+    </div>
+    <p class="pin-hint">${t("pinHint")}</p>
+    <p class="login-error" id="pin-error"></p>
+    <div class="modal-actions">
+      <button class="secondary-button" type="button" data-modal-close>${t("cancel")}</button>
+      <button class="primary-button" type="button" id="unlock-admin">${t("unlockAdmin")}</button>
+    </div>
+  `, () => {
+    const input = modalRoot.querySelector("#admin-pin");
+    const submit = () => {
+      const pin = input.value.replace(/\D/g, "").slice(0, 4);
+      input.value = pin;
+      if (pin !== "2026") {
+        modalRoot.querySelector("#pin-error").textContent = t("incorrectPin");
+        input.focus();
+        input.select();
+        return;
+      }
+      state.role = "admin";
+      closeModal();
+      renderApp();
+      window.scrollTo({ top: 0, behavior: "auto" });
+    };
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, 4);
+      modalRoot.querySelector("#pin-error").textContent = "";
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") submit();
+    });
+    modalRoot.querySelector("#unlock-admin").addEventListener("click", submit);
+    input.focus();
+  });
+}
+
 let toastTimer;
 function showToast(message) {
   clearTimeout(toastTimer);
@@ -1167,14 +1229,14 @@ function showToast(message) {
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2800);
 }
 
-document.querySelectorAll("[data-role-target]").forEach((button) => {
-  button.addEventListener("click", () => {
-    state.role = button.dataset.roleTarget;
-    closeModal();
-    renderApp();
-    main.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+const adminEntryButton = document.querySelector("#admin-entry-button");
+if (adminEntryButton) adminEntryButton.addEventListener("click", openAdminPin);
+
+const backToTeacherButton = document.querySelector("#back-to-teacher-button");
+if (backToTeacherButton) backToTeacherButton.addEventListener("click", () => {
+  state.role = "teacher";
+  renderApp();
+  window.scrollTo({ top: 0, behavior: "auto" });
 });
 
 document.querySelector("#language-toggle").addEventListener("click", () => {

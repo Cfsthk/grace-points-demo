@@ -2,16 +2,17 @@
 
 ## User-visible claims
 
-- Responsive bilingual app surfaces for teacher, student, and administrator roles.
+- Separate responsive bilingual URLs for students and teachers, with PIN-gated administration inside the teacher portal.
 - Teachers can browse home classes/cross-class subject groups, select students, award points, and reverse transactions.
 - Students can use class/class-number access and view their point history.
 - Administrators can review teacher participation, add allowance, export CSV, and preview annual rollover.
 
 ## Functional checks
 
-- Role controls: teacher → student → administrator → teacher.
+- Page separation: student root URL ↔ teacher portal URL.
+- Admin access: incorrect PIN error; PIN `2026` opens admin; return to teacher workspace.
 - Language control: English → Chinese → English on each major surface.
-- Teacher filters: recent P.4 Chinese Red, P.5 English Blue, P.6 Mathematics Green, plus home-class mode.
+- Teacher filters: 班別/科目 toggle; All grade/class/group choices; class-label search such as `P.5愛`.
 - Teacher selection: one student, select all, deselect all, search, quick point values, optional reason.
 - Award flow: confirmation modal, points increase, allowance decrease, success feedback, activity entry.
 - Reversal flow: confirmation, student points decrease, allowance refund, status update.

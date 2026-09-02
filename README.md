@@ -2,11 +2,11 @@
 
 An interactive bilingual prototype for a Hong Kong primary-school reward system.
 
-## Demo flows
+## Demo pages
 
-- **Teacher:** select a class or cross-class subject group, choose students, award points, review activity, and reverse a transaction.
-- **Student:** use the public class-number login (`P.5 愛 12`) to view a balance and transaction history.
-- **Admin:** compare teacher participation, add allowance, export a CSV report, and preview the annual rollover.
+- **Student page (`index.html`):** use the public class-number login (`P.5 愛 12`) to view a balance and transaction history.
+- **Teacher portal (`teacher.html`):** browse by class or cross-class subject group, search students by class, award points with an optional reason, review activity, and reverse a transaction.
+- **Admin portal:** open it from the teacher header with demo PIN `2026`, then compare participation, add allowance, export a CSV report, and preview annual rollover.
 
 This is a front-end demonstration using in-memory sample data. Refresh the page to reset it. It does not yet connect to Cloudflare D1 or Google authentication.
 

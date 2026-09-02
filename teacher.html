@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#164f42" />
     <meta
       name="description"
-      content="Grace Points — a bilingual school reward system demo for Hong Kong primary schools."
+      content="Grace Points teacher reward and administration portal demo."
     />
-    <title>Grace Points · 恩之果積分</title>
+    <title>Teacher Portal · Grace Points</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,10 +17,10 @@
     />
     <link rel="stylesheet" href="styles.css?v=3" />
   </head>
-  <body data-page="student">
+  <body data-page="teacher">
     <div class="app-shell">
       <header class="topbar page-topbar">
-        <a class="brand" href="index.html" aria-label="Grace Points student home">
+        <a class="brand" href="teacher.html" aria-label="Grace Points teacher home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 40 40" role="img">
               <path d="M21 8c2.4-4.1 5.7-5.7 9.8-4.8C28.9 7 25.6 8.7 21 8Z" />
@@ -30,16 +30,19 @@
           </span>
           <span class="brand-copy">
             <strong>Grace Points</strong>
-            <small>恩之果積分</small>
+            <small data-i18n="teacherPortal">Teacher portal</small>
           </span>
         </a>
 
         <div class="topbar-actions">
-          <span class="demo-badge" data-i18n="demo">Interactive demo</span>
-          <a class="portal-link" href="teacher.html" data-i18n="teacherPortal">Teacher portal</a>
-          <button class="language-button" id="language-toggle" type="button" aria-label="Switch language">
-            中文
-          </button>
+          <a class="portal-link subtle-link" href="index.html" data-i18n="studentPage">Student page</a>
+          <button class="portal-link" id="admin-entry-button" type="button" data-i18n="adminPortal">Admin portal</button>
+          <button class="portal-link" id="back-to-teacher-button" type="button" data-i18n="teacherWorkspace" hidden>Teacher workspace</button>
+          <button class="language-button" id="language-toggle" type="button" aria-label="Switch language">中文</button>
+          <div class="account-identity" id="account-identity" aria-live="polite">
+            <span class="avatar">陳</span>
+            <span class="account-name">Ms Chan</span>
+          </div>
         </div>
       </header>
 
